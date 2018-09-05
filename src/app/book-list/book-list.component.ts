@@ -1,6 +1,7 @@
-import { Component, OnInit, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 
 import { Book, Thumbnail } from '../shared/book';
+import { BookStoreService } from '../shared/book-store.service';
 
 @Component({
   selector: 'bm-book-list',
@@ -10,47 +11,11 @@ export class BookListComponent implements OnInit {
 
   books: Book[];
 
-  @Output() showDetailsEvent = new EventEmitter<Book>();
-
-  constructor() { }
+  constructor(private bookStoreService: BookStoreService) { }
 
   ngOnInit() {
-    this.books = [
-      new Book(
-        'isbn',
-        'title',
-        ['johann', 'johann2', 'johann3'],
-        new Date(2017, 3, 1),
-        'subtitle',
-        10,
-        [new Thumbnail('https://ng-buch.de/cover2.jpg', 'Bild')],
-        'description'
-      ),
-      new Book(
-        'isben',
-        'title',
-        ['johann', 'johann2', 'johann3'],
-        new Date(2017, 3, 1),
-        'subtitle',
-        10,
-        [new Thumbnail('https://ng-buch.de/cover2.jpg', 'Bild')],
-        'description'
-      ),
-      new Book(
-        'isban',
-        'title',
-        ['johann', 'johann2', 'johann3'],
-        new Date(2017, 3, 1),
-        'subtitle',
-        10,
-        [new Thumbnail('https://ng-buch.de/cover2.jpg', 'Bild')],
-        'description'
-      )
-    ];
+    this.books = this.bookStoreService.getAll();
   }
 
-  showDetails(book: Book){
-    this.showDetailsEvent.emit(book);
-  }
 
 }
