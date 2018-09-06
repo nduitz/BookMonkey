@@ -1,54 +1,45 @@
 import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { map, retry, catchError} from 'rxjs/operators';
 
 import { Book, Thumbnail } from './book';
+import { BookFactory } from './book-factory';
+import { BookRaw } from './book-raw';
 
 @Injectable({
   providedIn: 'root'
 })
 export class BookStoreService {
+  private api = 'https://book-monkey2-api.angular-buch.com';
+  private headers: Headers = new Headers();
 
   books: Book[];
 
-  constructor() {
-    this.books = [
-      new Book(
-        'isbn',
-        'title',
-        ['johann', 'johann2', 'johann3'],
-        new Date(2017, 3, 1),
-        'subtitle',
-        10,
-        [new Thumbnail('https://ng-buch.de/cover2.jpg', 'Bild')],
-        'description'
-      ),
-      new Book(
-        'isben',
-        'title',
-        ['johann', 'johann2', 'johann3'],
-        new Date(2017, 3, 1),
-        'subtitle',
-        10,
-        [new Thumbnail('https://ng-buch.de/cover2.jpg', 'Bild')],
-        'description'
-      ),
-      new Book(
-        'isban',
-        'title',
-        ['johann', 'johann2', 'johann3'],
-        new Date(2017, 3, 1),
-        'subtitle',
-        10,
-        [new Thumbnail('https://ng-buch.de/cover2.jpg', 'Bild')],
-        'description'
-      )
-    ];
+  constructor(private http: HttpClient) {
+    this.headers.append('Content-Type', 'application/json');
    }
 
-   getAll(): Book[] {
-     return this.books;
+   private errorHandler(error: Error | any): Observable<any> {
+     return Observable.throw(error);
    }
 
-   getOne(isbn: string) {
-     return this.books.find(book => book.isbn === isbn);
+   getAll(): Observable<Array<Book>> {
+      return this.http
+        .get<BookRaw[]>(`${this.api}/books`)
+        .pipe(
+          retry(3),
+          map(rawBooks => rawBooks
+            .map(rawBook => BookFactory.fromObject(rawBook)),
+          ),
+          catchError(this.errorHandler)
+        );
    }
+
+   getSingle(isbn): Observable<Book> {
+    return this.http.get<any[]>(`${this.api}/books/${isbn}`).pipe(
+                retry(3),
+                map(rawBooks => BookFactory.fromObject(rawBooks)),
+              catchError(this.errorHandler));
+ }
 }
